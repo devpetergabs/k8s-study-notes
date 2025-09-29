@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - db/db-noticias-config.yaml
+  - db/db-noticias-secret.yaml
+  - db/db-noticias.yaml
+  - db/svc-db-noticias.yaml
+
+  - pod-vol-study/pod-v.yaml
+  - pod-vol-study/pod-pv.yaml
+  - pod-vol-study/pod-pvc.yaml
+
+  - portal-noticias/portal-noticias-config.yaml
+  - portal-noticias/portal-noticias-deployment.yaml
+  - portal-noticias/portal-noticias-replicaset.yaml
+  - portal-noticias/portal-noticias.yaml
+  - portal-noticias/svc-portal-noticias.yaml
+
+  - sistema/sistema-config.yaml
+  - sistema/sistema-noticias.yaml
+  - sistema/svc-sistema-noticias.yaml
+
+  
+
+
+
+   
