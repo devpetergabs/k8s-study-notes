@@ -2,47 +2,88 @@ name: Deploy to Kubernetes
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # Sobe um cluster kind fresquinho
       - name: Set up Kind
-        uses: helm/kind-action@v1.2.0
+        uses: helm/kind-action@v1.10.0
         with:
-          version: v0.17.0
+          # fixar node image evita surpresas de versão
+          node_image: kindest/node:v1.29.2
+          cluster_name: chart-testing
 
+      # (Opcional) kubectl já vem no runner, mas fixar versão evita drift
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
         with:
-          version: 'latest'
+          version: 'v1.29.2'
 
-      - name: Deploy to Kubernetes
+      # Espera o nó, coredns e o provisionador de storage do kind
+      - name: Wait for cluster core
         run: |
-          pwd
-          cd k8s
-          ls
-          kubectl apply -k .
-          kubectl get pods
-          
-      - name: Wait for nodes Ready
-        run: |
+          set -euo pipefail
           kubectl get nodes -o wide
-          kubectl wait --for=condition=Ready node --all --timeout=120s
-          
-      - name: Wait for pods
-        run: |
-          kubectl get pods -A
-          kubectl wait --for=condition=Ready pods --all --timeout=180s || true
+          kubectl wait --for=condition=Ready node --all --timeout=180s
+          # coredns
+          kubectl -n kube-system rollout status deploy/coredns --timeout=180s
+          # local-path-provisioner (no kind fica em local-path-storage)
+          kubectl -n local-path-storage rollout status deploy/local-path-provisioner --timeout=180s
 
-      - name: Describe pods (debug Pending)
+      # Aplica tudo via kustomize (um diretório por vez)
+      - name: Deploy to Kubernetes
+        working-directory: k8s
+        run: |
+          set -euo pipefail
+          kubectl apply -k .
+          kubectl get all
+          echo "=== PVC/PV (se houver) ==="
+          kubectl get pvc,pv || true
+
+      # Aguarda os Deployments ficarem Available (melhor que esperar pods pelo nome)
+      - name: Wait for Deployments Available
+        run: |
+          set -euo pipefail
+          # espera todos os deployments do namespace atual (default)
+          for d in $(kubectl get deploy -o name); do
+            echo ">> esperando $d"
+            kubectl rollout status "$d" --timeout=300s
+          done
+          echo "=== Deployments ==="
+          kubectl get deploy -o wide
+
+      # Confirma pods prontos (evita --all; usa condição Ready por label ou por namespace)
+      - name: Wait for app pods Ready
+        run: |
+          set -euo pipefail
+          # se você tiver labels, prefira algo como: -l app=portal-noticias
+          kubectl wait --for=condition=Ready pod --all --timeout=300s || true
+          kubectl get pods -o wide
+
+      # Em caso de falha, despeja eventos e logs (facilita diagnóstico)
+      - name: Describe + Logs on failure
         if: failure()
         run: |
-          kubectl describe pods -A | tail -n 50
-        
+          echo "=== Nodes ==="
+          kubectl get nodes -o wide
+          echo "=== Events (últimos) ==="
+          kubectl get events --all-namespaces --sort-by=.lastTimestamp | tail -n 200 || true
+          echo "=== Describe pods ==="
+          kubectl describe pods || true
+          echo "=== Logs (containers) ==="
+          kubectl logs --all-containers=true -l app=portal-noticias --tail=200 || true
+          kubectl logs --all-containers=true -l app=db-noticias --tail=200 || true
+
+      # (Opcional) sempre mostrar um resumo ao final
+      - name: Summary
+        if: always()
+        run: |
+          echo "=== Final ==="
+          kubectl get all
