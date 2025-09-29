@@ -21,4 +21,6 @@ jobs:
         run: |
           pwd
           ls -la
+          cd k8s
+          kubectl apply -k .
         
