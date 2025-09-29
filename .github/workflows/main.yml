@@ -29,6 +29,5 @@ jobs:
           cd k8s
           ls
           kubectl apply -k .
-          kubectl exec -it teste jenkins-container -- bash
-          ls 
+          kubectl get pods
         
