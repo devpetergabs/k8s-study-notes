@@ -30,4 +30,19 @@ jobs:
           ls
           kubectl apply -k .
           kubectl get pods
+          
+      - name: Wait for nodes Ready
+        run: |
+          kubectl get nodes -o wide
+          kubectl wait --for=condition=Ready node --all --timeout=120s
+          
+      - name: Wait for pods
+        run: |
+          kubectl get pods -A
+          kubectl wait --for=condition=Ready pods --all --timeout=180s || true
+
+      - name: Describe pods (debug Pending)
+        if: failure()
+        run: |
+          kubectl describe pods -A | tail -n 50
         
