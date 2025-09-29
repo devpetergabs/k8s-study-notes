@@ -20,3 +20,4 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           ls
+          kubectl apply -k .
