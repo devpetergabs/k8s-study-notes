@@ -20,7 +20,7 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           pwd
-          ls -la
           cd k8s
+          ls
           kubectl apply -k .
         
