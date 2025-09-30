@@ -96,7 +96,6 @@ jobs:
           echo "=== PVs ==="
           kubectl get pv -o wide || true
           echo "==== Checkout host local dir ===="
-          ls -la /mnt/data
 
       - name: describe host pv - pvc
         run: |
