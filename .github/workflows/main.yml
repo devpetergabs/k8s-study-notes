@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy-and-prepare-cluster:
+    name: Deploy and Prepare Cluster
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -88,17 +89,15 @@ jobs:
           echo "=== Final ==="
           kubectl get all
 
-  validation:
-    runs-on: ubuntu-lates
-    steps:
       - name: List PVC and PV
         run: |
           echo "=== PVCs ==="
           kubectl get pvc -o wide || true
           echo "=== PVs ==="
           kubectl get pv -o wide || true
-          echo "==== ChecK host local dir" 
-          
+          echo "==== Checkout host local dir ===="
+          ls -la /mnt/data
+
       - name: describe host pv - pvc
         run: |
           kubectl describe pvc meu-pvc
