@@ -87,3 +87,10 @@ jobs:
         run: |
           echo "=== Final ==="
           kubectl get all
+
+      - name: List PVC and PV
+        run: |
+          echo "=== PVCs ==="
+          kubectl get pvc -o wide || true
+          echo "=== PVs ==="
+          kubectl get pv -o wide || true
