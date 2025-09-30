@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-and-prepare-cluster:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,12 +20,12 @@ jobs:
           node_image: kindest/node:v1.29.2
           cluster_name: chart-testing
 
-      # (Opcional) kubectl já vem no runner, mas fixar versão evita drift
+      #  kubectl já vem no runner, mas fixar versão evita drift
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
         with:
           version: 'v1.29.2'
-
+          
       # Espera o nó, coredns e o provisionador de storage do kind
       - name: Wait for cluster core
         run: |
@@ -81,16 +81,25 @@ jobs:
           kubectl logs --all-containers=true -l app=portal-noticias --tail=200 || true
           kubectl logs --all-containers=true -l app=db-noticias --tail=200 || true
 
-      # (Opcional) sempre mostrar um resumo ao final
+      # Mostra um resumo ao final
       - name: Summary
         if: always()
         run: |
           echo "=== Final ==="
           kubectl get all
 
+  validation:
+    runs-on: ubuntu-lates
+    steps:
       - name: List PVC and PV
         run: |
           echo "=== PVCs ==="
           kubectl get pvc -o wide || true
           echo "=== PVs ==="
           kubectl get pv -o wide || true
+          echo "==== ChecK host local dir" 
+          
+      - name: describe host pv - pvc
+        run: |
+          kubectl describe pvc meu-pvc
+          kubectl describe pv meu-pv
