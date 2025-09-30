@@ -104,8 +104,8 @@ jobs:
 
       - name: Exec into pod and list mount
         run: |
-          POD_NAME=$(kubectl get pod -l app=jenkins -o jsonpath="{.items[0].metadata.name}")
-          echo "Pod Name: $POD_NAME"
-          kubectl exec -it $POD_NAME -- ls -l /volume-dentro-do-container
-          kubectl exec -it $POD_NAME -- touch /volume-dentro-do-container/testfile.txt
+          POD_NAME=$teste
+          echo "Pod Name: teste"
+          kubectl exec teste -c jenkins-container -- ls -l /volume-dentro-do-container
+          kubectl exec  teste -c jenkins-container -- touch /volume-dentro-do-container/testfile.txt
           echo "File created inside the container volume mount point."
