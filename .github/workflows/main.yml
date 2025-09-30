@@ -108,4 +108,5 @@ jobs:
           echo "Pod Name: teste"
           kubectl exec teste -c jenkins-container -- ls -l /volume-dentro-do-container
           kubectl exec  teste -c jenkins-container -- touch /volume-dentro-do-container/testfile.txt
+          kubectl exec teste -c jenkins-container -- ls -l /volume-dentro-do-container
           echo "File created inside the container volume mount point."
