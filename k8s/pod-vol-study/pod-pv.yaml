@@ -13,3 +13,7 @@ spec:
   hostPath:
     path: "/tmp"
     type: Directory
+volumes:
+  - name: my-first-volume
+    persistentVolumeClaim:
+      claimName: meu-pvc
