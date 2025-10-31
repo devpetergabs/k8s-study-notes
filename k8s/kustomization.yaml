@@ -7,8 +7,9 @@ resources:
   - db/svc-db-noticias.yaml
 
   - pod-vol-study/pod-v.yaml
-  - pod-vol-study/pod-pv.yaml
+  #- pod-vol-study/pod-pv.yaml
   - pod-vol-study/pod-pvc.yaml
+  - pod-vol-study/pod-pvc-sc.yaml
 
   - portal-noticias/portal-noticias-config.yaml
   - portal-noticias/portal-noticias-deployment.yaml
